@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>국민성장펀드 소득공제 계산기</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #3182f6;
+  --blue-dark: #1b64da;
+  --blue-light: #ebf3fe;
+  --green: #00b493;
+  --green-light: #e6faf7;
+  --red: #f03e3e;
+  --red-light: #fff0f0;
+  --orange: #f59e0b;
+  --orange-light: #fffbeb;
+  --bg: #f2f4f6;
+  --card: #ffffff;
+  --text: #191f28;
+  --text2: #6b7684;
+  --text3: #b0b8c1;
+  --border: #e5e8eb;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --radius: 16px;
+}
+body { background:var(--bg); font-family:'Pretendard',-apple-system,sans-serif; color:var(--text); min-height:100vh; -webkit-font-smoothing:antialiased; }
+
+/* HEADER */
+.header { background:var(--card); padding:20px 20px 0; position:sticky; top:0; z-index:100; border-bottom:1px solid var(--border); }
+.header-inner { max-width:480px; margin:0 auto; }
+.header-top { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.header-icon { width:38px; height:38px; background:var(--blue); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:19px; flex-shrink:0; }
+.header-title { font-size:17px; font-weight:700; color:var(--text); }
+.header-sub { font-size:12px; color:var(--text2); margin-top:1px; }
+.tab-bar { display:flex; }
+.tab-btn { flex:1; padding:10px 0; border:none; background:none; font-family:inherit; font-size:14px; font-weight:500; color:var(--text2); cursor:pointer; border-bottom:2px solid transparent; transition:color .18s,border-color .18s; }
+.tab-btn.active { color:var(--blue); font-weight:700; border-bottom-color:var(--blue); }
+
+/* CONTAINER */
+.container { max-width:480px; margin:0 auto; padding:16px 16px 120px; }
+
+/* CARD */
+.card { background:var(--card); border-radius:var(--radius); margin-bottom:12px; overflow:hidden; box-shadow:var(--shadow); }
+.card-header { padding:20px 20px 0; }
+.card-label { font-size:11px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px; }
+.card-title { font-size:17px; font-weight:700; color:var(--text); margin-bottom:0; }
+.card-body { padding:16px 20px 20px; }
+
+/* FIELD */
+.field { margin-bottom:20px; }
+.field:last-child { margin-bottom:0; }
+.field-label { font-size:13px; font-weight:600; color:var(--text2); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; }
+.field-label .badge { font-size:11px; font-weight:600; padding:2px 9px; border-radius:20px; background:var(--blue-light); color:var(--blue); }
+
+.input-box { display:flex; align-items:center; background:var(--bg); border:1.5px solid var(--border); border-radius:12px; padding:0 14px; transition:border-color .18s,background .18s; cursor:text; }
+.input-box:focus-within { border-color:var(--blue); background:#fff; }
+.input-box input { flex:1; border:none; background:none; font-family:inherit; font-size:24px; font-weight:700; color:var(--text); padding:14px 0; outline:none; width:100%; min-width:0; }
+.input-box input::placeholder { color:var(--text3); font-weight:500; font-size:18px; }
+.input-box .unit { font-size:16px; font-weight:600; color:var(--text2); margin-left:6px; flex-shrink:0; }
+.field-hint { font-size:12px; color:var(--text3); margin-top:6px; }
+.field-hint.warn { color:var(--red); }
+
+/* TIER BAR */
+.tier-wrap { margin-top:14px; }
+.tier-bar-bg { height:8px; background:var(--border); border-radius:8px; position:relative; overflow:hidden; margin-bottom:8px; }
+.tier-seg { position:absolute; height:100%; border-radius:8px; transition:width .4s cubic-bezier(.25,.8,.25,1); }
+.seg-s3 { background:var(--orange); opacity:.55; left:0; }
+.seg-s2 { background:var(--green); opacity:.7; left:0; }
+.seg-s1 { background:var(--blue); left:0; }
+.tier-labels { display:flex; justify-content:space-between; font-size:10.5px; color:var(--text3); }
+
+/* CHIPS */
+.chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.chip { padding:6px 14px; border-radius:20px; background:var(--bg); border:1.5px solid var(--border); font-size:13px; font-weight:600; color:var(--text2); cursor:pointer; transition:all .15s; }
+.chip:hover, .chip.active { background:var(--blue-light); border-color:var(--blue); color:var(--blue); }
+
+/* SELECT */
+.select-box { background:var(--bg); border:1.5px solid var(--border); border-radius:12px; padding:14px 40px 14px 14px; font-family:inherit; font-size:16px; font-weight:600; color:var(--text); width:100%; outline:none; cursor:pointer; -webkit-appearance:none; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7684' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; transition:border-color .18s; }
+.select-box:focus { border-color:var(--blue); background-color:#fff; }
+
+/* ROW ITEMS */
+.row-item { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; border-bottom:1px solid var(--border); }
+.row-item:last-child { border-bottom:none; }
+.row-item-label { font-size:14px; color:var(--text2); }
+.row-item-value { font-size:15px; font-weight:700; color:var(--text); }
+.row-item-value.blue { color:var(--blue); }
+.row-item-value.green { color:var(--green); }
+.row-item-value.orange { color:var(--orange); }
+.row-item-value.red { color:var(--red); text-decoration:line-through; }
+
+/* RESULT HERO */
+.result-hero { background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%); border-radius:var(--radius); padding:28px 20px 24px; margin-bottom:12px; box-shadow:0 8px 32px rgba(49,130,246,.28); position:relative; overflow:hidden; }
+.result-hero::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,.08); }
+.result-hero::after { content:''; position:absolute; bottom:-50px; left:-40px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,.05); }
+.hero-label { font-size:13px; font-weight:500; color:rgba(255,255,255,.65); margin-bottom:8px; position:relative; z-index:1; }
+.hero-amount { font-size:44px; font-weight:800; color:#fff; letter-spacing:-1.5px; line-height:1; margin-bottom:6px; position:relative; z-index:1; }
+.hero-sub { font-size:13px; color:rgba(255,255,255,.55); position:relative; z-index:1; }
+.hero-badges { display:flex; gap:8px; margin-top:18px; position:relative; z-index:1; flex-wrap:wrap; }
+.hero-badge { background:rgba(255,255,255,.15); border-radius:20px; padding:5px 12px; font-size:12px; font-weight:600; color:#fff; }
+
+/* INFO CHIPS GRID */
+.info-chips { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+.info-chip { background:var(--card); border-radius:14px; padding:16px; box-shadow:var(--shadow); }
+.info-chip-icon { font-size:22px; margin-bottom:6px; }
+.info-chip-label { font-size:11px; color:var(--text2); margin-bottom:4px; }
+.info-chip-value { font-size:17px; font-weight:800; color:var(--text); }
+.info-chip-value.blue { color:var(--blue); }
+.info-chip-value.green { color:var(--green); }
+
+/* TIER TABLE */
+.tier-table { border-radius:12px; overflow:hidden; border:1.5px solid var(--border); }
+.tier-row { display:grid; grid-template-columns:2fr 1fr 2fr; font-size:13px; padding:12px 14px; border-bottom:1px solid var(--border); align-items:center; }
+.tier-row:last-child { border-bottom:none; }
+.tier-row.thead { background:var(--bg); font-weight:700; color:var(--text2); font-size:11px; text-transform:uppercase; letter-spacing:.5px; }
+.tier-row.active-tier { background:var(--blue-light); }
+.rate-badge { display:inline-block; padding:2px 9px; border-radius:6px; font-weight:700; font-size:12px; }
+.r40 { background:#dbeafe; color:#1d4ed8; }
+.r20 { background:#dcfce7; color:#15803d; }
+.r10 { background:#fef3c7; color:#b45309; }
+
+/* BENEFIT CARD */
+.benefit-header { padding:16px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); }
+.b-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:21px; flex-shrink:0; }
+.bg-blue { background:var(--blue-light); }
+.bg-green { background:var(--green-light); }
+.bg-orange { background:var(--orange-light); }
+.b-title { font-size:15px; font-weight:700; }
+.b-desc { font-size:12px; color:var(--text2); margin-top:2px; }
+
+/* NOTICE */
+.notice-item { display:flex; gap:10px; font-size:13px; color:var(--text2); line-height:1.65; padding:10px 0; border-bottom:1px solid var(--border); }
+.notice-item:last-child { border-bottom:none; }
+.notice-dot { width:6px; height:6px; border-radius:50%; background:var(--text3); flex-shrink:0; margin-top:7px; }
+
+/* STICKY BTN */
+.sticky-wrap { position:fixed; bottom:0; left:0; right:0; background:linear-gradient(to top,#f2f4f6 70%,transparent); padding:12px 16px 28px; z-index:200; }
+.sticky-inner { max-width:480px; margin:0 auto; }
+.btn-calc { width:100%; padding:17px; background:var(--blue); color:#fff; border:none; border-radius:14px; font-family:inherit; font-size:16px; font-weight:700; cursor:pointer; transition:background .18s,transform .12s; box-shadow:0 6px 24px rgba(49,130,246,.35); }
+.btn-calc:hover { background:var(--blue-dark); }
+.btn-calc:active { transform:scale(.98); }
+
+/* TAB PANEL */
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* ANIMATION */
+.fade-up { animation:fadeUp .35s cubic-bezier(.25,.8,.25,1) both; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+.disclaimer { text-align:center; font-size:11.5px; color:var(--text3); padding:8px 0 16px; line-height:1.7; }
+
+/* TOAST */
+#toast { position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:#191f28; color:#fff; padding:12px 20px; border-radius:12px; font-size:14px; font-weight:600; z-index:999; box-shadow:0 4px 20px rgba(0,0,0,.2); transition:opacity .3s; white-space:nowrap; opacity:0; pointer-events:none; }
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div class="header-icon">📈</div>
+      <div>
+        <div class="header-title">국민성장펀드 소득공제 계산기</div>
+        <div class="header-sub">2025년 세법 기준 · 구간별 차등 공제율</div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('calc')">계산하기</button>
+      <button class="tab-btn" onclick="switchTab('info')">공제율 안내</button>
+      <button class="tab-btn" onclick="switchTab('benefit')">혜택 정리</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ═══ TAB: 계산하기 ═══ -->
+  <div class="tab-panel active" id="panel-calc">
+    <div style="height:4px"></div>
+
+    <!-- 급여 -->
+    <div class="card">
+      <div class="card-body">
+        <div class="field">
+          <div class="field-label">연간 총 급여 <span class="badge">근로소득 기준</span></div>
+          <div class="input-box">
+            <input type="number" id="salary" placeholder="0" min="0" oninput="clearChips('salary-chips')">
+            <span class="unit">만원</span>
+          </div>
+          <div class="field-hint">세전 연봉을 입력해주세요</div>
+          <div class="chips" id="salary-chips">
+            <div class="chip" onclick="setVal('salary','salary-chips',4000,this)">4,000만</div>
+            <div class="chip" onclick="setVal('salary','salary-chips',6000,this)">6,000만</div>
+            <div class="chip" onclick="setVal('salary','salary-chips',8000,this)">8,000만</div>
+            <div class="chip" onclick="setVal('salary','salary-chips',12000,this)">1.2억</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 투자금액 -->
+    <div class="card">
+      <div class="card-body">
+        <div class="field">
+          <div class="field-label">총 투자 금액 <span class="badge">1인 한도 2억</span></div>
+          <div class="input-box">
+            <input type="number" id="invest" placeholder="0" min="0" oninput="onInvestChange()">
+            <span class="unit">만원</span>
+          </div>
+          <div class="field-hint" id="invest-hint">3,000만원 이하 구간: 40% 소득공제 적용</div>
+          <div class="tier-wrap">
+            <div class="tier-bar-bg">
+              <div class="tier-seg seg-s3" id="bar-s3" style="width:0%"></div>
+              <div class="tier-seg seg-s2" id="bar-s2" style="width:0%"></div>
+              <div class="tier-seg seg-s1" id="bar-s1" style="width:0%"></div>
+            </div>
+            <div class="tier-labels">
+              <span>0</span><span>3,000만</span><span>5,000만</span><span>2억</span>
+            </div>
+          </div>
+          <div class="chips" id="invest-chips">
+            <div class="chip" onclick="setVal('invest','invest-chips',1000,this);onInvestChange()">1,000만</div>
+            <div class="chip" onclick="setVal('invest','invest-chips',3000,this);onInvestChange()">3,000만</div>
+            <div class="chip" onclick="setVal('invest','invest-chips',5000,this);onInvestChange()">5,000만</div>
+            <div class="chip" onclick="setVal('invest','invest-chips',7000,this);onInvestChange()">7,000만</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 납입 시작월 -->
+    <div class="card">
+      <div class="card-body">
+        <div class="field">
+          <div class="field-label">납입 시작 예정월</div>
+          <select class="select-box" id="startMonth">
+            <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+            <option value="4">4월</option><option value="5" selected>5월 (다음달)</option><option value="6">6월</option>
+            <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+            <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+          </select>
+          <div class="field-hint">연내 납입 시작월 기준으로 올해 절세액을 추정합니다</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 결과 -->
+    <div id="result-area" style="display:none">
+
+      <div class="result-hero fade-up">
+        <div class="hero-label">예상 절세 금액 (지방소득세 포함)</div>
+        <div class="hero-amount" id="hero-amount">—</div>
+        <div class="hero-sub" id="hero-sub">—</div>
+        <div class="hero-badges" id="hero-badges"></div>
+      </div>
+
+      <div class="info-chips fade-up">
+        <div class="info-chip">
+          <div class="info-chip-icon">🧾</div>
+          <div class="info-chip-label">총 소득공제액</div>
+          <div class="info-chip-value blue" id="c-ded">—</div>
+        </div>
+        <div class="info-chip">
+          <div class="info-chip-icon">📊</div>
+          <div class="info-chip-label">적용 한계세율</div>
+          <div class="info-chip-value blue" id="c-rate">—</div>
+        </div>
+        <div class="info-chip">
+          <div class="info-chip-icon">📈</div>
+          <div class="info-chip-label">세금 환산 수익률</div>
+          <div class="info-chip-value green" id="c-yield">—</div>
+        </div>
+        <div class="info-chip">
+          <div class="info-chip-icon">💰</div>
+          <div class="info-chip-label">총 투자금액</div>
+          <div class="info-chip-value" id="c-invest">—</div>
+        </div>
+      </div>
+
+      <div class="card fade-up">
+        <div style="padding:18px 20px 4px">
+          <div class="card-label">계산 상세 내역</div>
+        </div>
+        <div class="row-item"><span class="row-item-label">📅 납입 기간</span><span class="row-item-value" id="d-months">—</span></div>
+        <div class="row-item"><span class="row-item-label">💵 총 투자금액</span><span class="row-item-value" id="d-invest">—</span></div>
+        <div class="row-item" id="row-t1" style="display:none"><span class="row-item-label">🔵 ~3,000만원 (40%)</span><span class="row-item-value blue" id="d-t1">—</span></div>
+        <div class="row-item" id="row-t2" style="display:none"><span class="row-item-label">🟢 3,000~5,000만 (20%)</span><span class="row-item-value green" id="d-t2">—</span></div>
+        <div class="row-item" id="row-t3" style="display:none"><span class="row-item-label">🟡 5,000~7,000만 (10%)</span><span class="row-item-value orange" id="d-t3">—</span></div>
+        <div class="row-item"><span class="row-item-label">🧾 총 소득공제액</span><span class="row-item-value blue" id="d-ded">—</span></div>
+        <div class="row-item"><span class="row-item-label">📉 과세표준 한계세율</span><span class="row-item-value" id="d-bracket">—</span></div>
+        <div class="row-item"><span class="row-item-label">💸 소득세 절세액</span><span class="row-item-value green" id="d-itax">—</span></div>
+        <div class="row-item"><span class="row-item-label">🏙 지방소득세 절세 (10%)</span><span class="row-item-value green" id="d-ltax">—</span></div>
+        <div class="row-item" style="background:var(--blue-light);border-radius:0 0 16px 16px">
+          <span class="row-item-label" style="font-weight:700;color:var(--blue)">✅ 총 절세액</span>
+          <span class="row-item-value" style="color:var(--blue);font-size:17px" id="d-total">—</span>
+        </div>
+      </div>
+
+      <!-- 배당소득 분리과세 -->
+      <div class="card fade-up">
+        <div style="padding:16px 20px 4px">
+          <div class="card-label">추가 혜택</div>
+          <div class="card-title" style="font-size:15px;margin-bottom:2px">배당소득 분리과세</div>
+        </div>
+        <div class="row-item"><span class="row-item-label">일반 펀드 배당세율</span><span class="row-item-value red">15.4%</span></div>
+        <div class="row-item"><span class="row-item-label">국민성장펀드 배당세율</span><span class="row-item-value green">9% 저율 분리과세</span></div>
+        <div class="row-item"><span class="row-item-label">금융소득종합과세</span><span class="row-item-value green">제외 적용</span></div>
+        <div class="row-item"><span class="row-item-label">혜택 적용 기간</span><span class="row-item-value">최대 5년</span></div>
+        <div style="padding:12px 20px 16px;font-size:12px;color:var(--text2);line-height:1.65;border-top:1px solid var(--border)">
+          💡 연간 금융소득 2,000만원 초과 고소득자일수록 종합과세 제외 효과가 크게 나타납니다.
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        본 계산기는 참고용 추정치입니다. 실제 절세액은 개인 공제 항목·과세표준에 따라 다릅니다.<br>
+        국민성장펀드는 출시 전이며 세부 조건이 변경될 수 있습니다.
+      </div>
+    </div>
+  </div><!-- /panel-calc -->
+
+  <!-- ═══ TAB: 공제율 안내 ═══ -->
+  <div class="tab-panel" id="panel-info">
+    <div style="height:8px"></div>
+    <div class="info-chips">
+      <div class="info-chip"><div class="info-chip-icon">🔵</div><div class="info-chip-label">3천만 이하</div><div class="info-chip-value blue">40% 공제</div></div>
+      <div class="info-chip"><div class="info-chip-icon">🟢</div><div class="info-chip-label">3천~5천만</div><div class="info-chip-value green">20% 공제</div></div>
+      <div class="info-chip"><div class="info-chip-icon">🟡</div><div class="info-chip-label">5천~7천만</div><div class="info-chip-value" style="color:var(--orange)">10% 공제</div></div>
+      <div class="info-chip"><div class="info-chip-icon">🏆</div><div class="info-chip-label">연 최대 공제</div><div class="info-chip-value blue">1,800만원</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="padding-bottom:14px">
+        <div class="card-label">구간별 소득공제율</div>
+        <div class="card-title">투자금액에 따라 차등 공제율 적용</div>
+      </div>
+      <div class="card-body" style="padding-top:4px">
+        <div class="tier-table">
+          <div class="tier-row thead"><span>투자 구간</span><span>공제율</span><span>최대 공제액</span></div>
+          <div class="tier-row"><span>3,000만원 이하</span><span><span class="rate-badge r40">40%</span></span><span style="font-weight:700;color:var(--blue)">1,200만원</span></div>
+          <div class="tier-row"><span>3,000~5,000만원</span><span><span class="rate-badge r20">20%</span></span><span style="font-weight:700;color:var(--green)">+400만원</span></div>
+          <div class="tier-row"><span>5,000~7,000만원</span><span><span class="rate-badge r10">10%</span></span><span style="font-weight:700;color:var(--orange)">+200만원</span></div>
+          <div class="tier-row" style="background:var(--blue-light)"><span style="font-weight:700">7,000만원 투자 합계</span><span>—</span><span style="font-weight:800;color:var(--blue)">1,800만원</span></div>
+        </div>
+        <div style="margin-top:14px;padding:14px;background:var(--bg);border-radius:12px;font-size:13px;color:var(--text2);line-height:1.75">
+          <strong style="color:var(--text)">📌 계산 예시 (7,000만원 투자)</strong><br>
+          3,000만 × 40% = 1,200만원<br>
+          2,000만 × 20% = 400만원<br>
+          2,000만 × 10% = 200만원<br>
+          <strong style="color:var(--blue)">→ 총 소득공제 1,800만원</strong>
+        </div>
+        <div style="margin-top:10px;padding:14px;background:var(--bg);border-radius:12px;font-size:13px;color:var(--text2);line-height:1.7">
+          <strong style="color:var(--text)">💡 총 납입 한도</strong><br>
+          1인당 최대 <strong style="color:var(--text)">2억원</strong>까지 투자 가능<br>
+          단, 7,000만원 초과분에는 소득공제가 적용되지 않습니다
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="padding-bottom:14px">
+        <div class="card-label">소득세 세율 구간 (2025년)</div>
+        <div class="card-title">내 세율 구간이 높을수록 절세 효과 ↑</div>
+      </div>
+      <div class="card-body" style="padding-top:4px">
+        <div class="tier-table">
+          <div class="tier-row thead"><span>과세표준</span><span>세율</span><span>공제 1,200만 시</span></div>
+          <div class="tier-row"><span>1,400만 이하</span><span>6%</span><span>약 79만원</span></div>
+          <div class="tier-row"><span>~5,000만원</span><span>15%</span><span>약 198만원</span></div>
+          <div class="tier-row"><span>~8,800만원</span><span>24%</span><span>약 317만원</span></div>
+          <div class="tier-row"><span>~1.5억원</span><span>35%</span><span>약 462만원</span></div>
+          <div class="tier-row"><span>~3억원</span><span>38%</span><span>약 502만원</span></div>
+          <div class="tier-row"><span>~5억원</span><span>40%</span><span>약 528만원</span></div>
+          <div class="tier-row"><span>~10억원</span><span>42%</span><span>약 554만원</span></div>
+          <div class="tier-row"><span>10억 초과</span><span>45%</span><span>약 594만원</span></div>
+        </div>
+        <div style="margin-top:10px;font-size:11.5px;color:var(--text3)">* 지방소득세(10%) 포함 기준. 근로소득공제 적용 후 과세표준 기준.</div>
+      </div>
+    </div>
+    <div style="height:20px"></div>
+  </div><!-- /panel-info -->
+
+  <!-- ═══ TAB: 혜택 정리 ═══ -->
+  <div class="tab-panel" id="panel-benefit">
+    <div style="height:8px"></div>
+
+    <div class="card">
+      <div class="benefit-header">
+        <div class="b-icon bg-blue">📉</div>
+        <div><div class="b-title">소득공제 혜택</div><div class="b-desc">투자금액 구간별 차등 공제 · 최대 1,800만원</div></div>
+      </div>
+      <div class="row-item"><span class="row-item-label">3,000만원 이하</span><span class="row-item-value blue">40% 공제 (최대 1,200만)</span></div>
+      <div class="row-item"><span class="row-item-label">3,000~5,000만원</span><span class="row-item-value green">20% 공제 (+400만)</span></div>
+      <div class="row-item"><span class="row-item-label">5,000~7,000만원</span><span class="row-item-value orange">10% 공제 (+200만)</span></div>
+      <div class="row-item"><span class="row-item-label">연간 최대 공제 한도</span><span class="row-item-value blue">1,800만원</span></div>
+      <div class="row-item"><span class="row-item-label">1인 총 납입 한도</span><span class="row-item-value">2억원</span></div>
+    </div>
+
+    <div class="card">
+      <div class="benefit-header">
+        <div class="b-icon bg-green">💸</div>
+        <div><div class="b-title">배당소득 분리과세</div><div class="b-desc">9% 저율 · 종합과세 제외 · 최대 5년</div></div>
+      </div>
+      <div class="row-item"><span class="row-item-label">일반 펀드 배당세율</span><span class="row-item-value red">15.4%</span></div>
+      <div class="row-item"><span class="row-item-label">국민성장펀드 적용 세율</span><span class="row-item-value green">9.0%</span></div>
+      <div class="row-item"><span class="row-item-label">절감 세율</span><span class="row-item-value green">-6.4%p</span></div>
+      <div class="row-item"><span class="row-item-label">금융소득종합과세 대상</span><span class="row-item-value green">제외</span></div>
+      <div class="row-item"><span class="row-item-label">혜택 적용 기간</span><span class="row-item-value">최대 5년</span></div>
+    </div>
+
+    <div class="card">
+      <div class="benefit-header">
+        <div class="b-icon bg-orange">🛡️</div>
+        <div><div class="b-title">정부 손실 보전 참여</div><div class="b-desc">투자자 손실을 정부가 후순위로 우선 부담</div></div>
+      </div>
+      <div class="row-item"><span class="row-item-label">정부 참여 비율</span><span class="row-item-value orange">펀드 자산의 최대 20%</span></div>
+      <div class="row-item"><span class="row-item-label">손실 부담 순위</span><span class="row-item-value green">정부가 후순위로 우선 부담</span></div>
+    </div>
+
+    <div class="card">
+      <div style="padding:16px 20px 4px"><div class="card-label">가입 조건 · 유의사항</div><div class="card-title" style="font-size:15px;margin-bottom:4px">꼭 확인하세요</div></div>
+      <div style="padding:0 20px 16px">
+        <div class="notice-item"><div class="notice-dot" style="background:var(--red)"></div><span><strong>가입 제한</strong> — 최근 3년 이내 금융소득종합과세 대상자는 가입이 제한됩니다.</span></div>
+        <div class="notice-item"><div class="notice-dot"></div><span><strong>납입 한도</strong> — 1인당 총 납입 한도는 2억원으로 제한됩니다.</span></div>
+        <div class="notice-item"><div class="notice-dot"></div><span><strong>의무 보유</strong> — 최소 3년 이상 장기 투자해야 소득공제 혜택이 유지됩니다.</span></div>
+        <div class="notice-item"><div class="notice-dot" style="background:var(--red)"></div><span><strong>중도 해지</strong> — 3년 이전 해지 시 소득공제 혜택이 추징될 수 있습니다.</span></div>
+        <div class="notice-item"><div class="notice-dot"></div><span>출시 전 정보로, 세부 조건은 변경될 수 있으므로 실제 가입 시 약관을 반드시 확인하세요.</span></div>
+      </div>
+    </div>
+    <div class="disclaimer">본 안내는 참고용이며 실제 세제 혜택은 개인 상황에 따라 다릅니다.<br>세무사 또는 금융기관 상담을 권장드립니다.</div>
+  </div><!-- /panel-benefit -->
+
+</div><!-- /container -->
+
+<!-- STICKY BUTTON -->
+<div class="sticky-wrap" id="sticky-wrap">
+  <div class="sticky-inner">
+    <button class="btn-calc" onclick="calculate()">소득공제 계산하기</button>
+  </div>
+</div>
+
+<script>
+const TAX_BRACKETS = [
+  {limit:1400,rate:.06},{limit:5000,rate:.15},{limit:8800,rate:.24},
+  {limit:15000,rate:.35},{limit:30000,rate:.38},{limit:50000,rate:.40},
+  {limit:100000,rate:.42},{limit:Infinity,rate:.45}
+];
+
+function getWorkDed(s){
+  if(s<=500) return s*.7;
+  if(s<=1500) return 350+(s-500)*.4;
+  if(s<=4500) return 750+(s-1500)*.15;
+  if(s<=10000) return 1200+(s-4500)*.05;
+  return 1475;
+}
+function getTaxable(s){ return Math.max(s-getWorkDed(s)-150,0); }
+function getMarginal(t){ for(const b of TAX_BRACKETS) if(t<=b.limit) return b; return TAX_BRACKETS[TAX_BRACKETS.length-1]; }
+
+function calcDed(invest){
+  const T1=Math.min(invest,3000), T2=Math.max(0,Math.min(invest-3000,2000)), T3=Math.max(0,Math.min(invest-5000,2000));
+  const d1=T1*.4, d2=T2*.2, d3=T3*.1;
+  return {T1,T2,T3,d1,d2,d3,total:Math.min(d1+d2+d3,1800)};
+}
+
+function fmt(v){
+  if(v===0) return '0원';
+  if(v>=10000){const u=Math.floor(v/10000),m=Math.round(v%10000);return m===0?`${u.toLocaleString()}억원`:`${u.toLocaleString()}억 ${m.toLocaleString()}만원`;}
+  if(v>=1) return `${(Math.round(v*10)/10).toLocaleString()}만원`;
+  return `${Math.round(v*10000).toLocaleString()}원`;
+}
+function fmtHero(man){
+  const w=Math.round(man*10000);
+  if(w>=100000000){const u=Math.floor(w/100000000),r=w%100000000;return r===0?`${u.toLocaleString()}억원`:`${u.toLocaleString()}억 ${Math.round(r/10000).toLocaleString()}만원`;}
+  if(w>=10000) return `${Math.round(w/10000).toLocaleString()}만원`;
+  return `${w.toLocaleString()}원`;
+}
+
+function onInvestChange(){
+  const v=parseFloat(document.getElementById('invest').value)||0;
+  const MAX=20000;
+  document.getElementById('bar-s1').style.width=(Math.min(v,3000)/MAX*100)+'%';
+  document.getElementById('bar-s2').style.width=(Math.min(v,5000)/MAX*100)+'%';
+  document.getElementById('bar-s3').style.width=(Math.min(v,7000)/MAX*100)+'%';
+  const h=document.getElementById('invest-hint');
+  if(v<=0)           {h.textContent='3,000만원 이하 구간: 40% 소득공제 적용';h.className='field-hint';}
+  else if(v<=3000)   {h.textContent=`현재 구간: 40% 공제 적용 (공제액 ${fmt(v*.4)})`;h.className='field-hint';}
+  else if(v<=5000)   {h.textContent=`3천만 초과 ${fmt(v-3000)}은 20% 추가 공제`;h.className='field-hint';}
+  else if(v<=7000)   {h.textContent=`5천만 초과 ${fmt(v-5000)}은 10% 추가 공제`;h.className='field-hint';}
+  else if(v<=20000)  {h.textContent='7천만 초과분은 소득공제 미적용 (한도 도달)';h.className='field-hint';}
+  else               {h.textContent='1인당 납입 한도는 2억원입니다';h.className='field-hint warn';}
+  clearChips('invest-chips');
+}
+
+function setVal(id,chipsId,val,el){
+  document.getElementById(id).value=val;
+  clearChips(chipsId);
+  if(el){document.querySelectorAll(`#${chipsId} .chip`).forEach(c=>c.classList.remove('active'));el.classList.add('active');}
+}
+function clearChips(id){document.querySelectorAll(`#${id} .chip`).forEach(c=>c.classList.remove('active'));}
+
+function switchTab(tab){
+  ['calc','info','benefit'].forEach((t,i)=>{
+    document.querySelectorAll('.tab-btn')[i].classList.toggle('active',t===tab);
+    document.getElementById(`panel-${t}`).classList.toggle('active',t===tab);
+  });
+  document.getElementById('sticky-wrap').style.display=tab==='calc'?'block':'none';
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>{t.style.opacity='0';},2200);
+}
+
+function calculate(){
+  const salary=parseFloat(document.getElementById('salary').value);
+  const invest=parseFloat(document.getElementById('invest').value);
+  const sm=parseInt(document.getElementById('startMonth').value);
+  if(!salary||salary<=0){showToast('연간 급여를 입력해주세요');return;}
+  if(!invest||invest<=0){showToast('투자 금액을 입력해주세요');return;}
+  if(invest>20000){showToast('1인당 납입 한도는 2억원입니다');return;}
+
+  const months=12-sm+1;
+  const ded=calcDed(invest);
+  const taxable=getTaxable(salary);
+  const bracket=getMarginal(taxable);
+  const rate=bracket.rate;
+  const itax=ded.total*rate;
+  const ltax=itax*.1;
+  const total=itax+ltax;
+  const yld=(total/invest)*100;
+
+  // Hero
+  document.getElementById('hero-amount').textContent=fmtHero(Math.round(total*10)/10);
+  document.getElementById('hero-sub').textContent=`한계세율 ${(rate*100).toFixed(0)}% · 소득공제 ${fmt(ded.total)} 기준`;
+  document.getElementById('hero-badges').innerHTML=`
+    <div class="hero-badge">📉 공제 ${fmt(ded.total)}</div>
+    <div class="hero-badge">📈 +${yld.toFixed(1)}% 수익률</div>
+    <div class="hero-badge">⏱ ${months}개월</div>`;
+
+  // Chips
+  document.getElementById('c-ded').textContent=fmt(ded.total);
+  document.getElementById('c-rate').textContent=(rate*100).toFixed(0)+'%';
+  document.getElementById('c-yield').textContent='+'+yld.toFixed(1)+'%';
+  document.getElementById('c-invest').textContent=fmt(invest);
+
+  // Details
+  document.getElementById('d-months').textContent=`${sm}월 ~ 12월 (${months}개월)`;
+  document.getElementById('d-invest').textContent=fmt(invest);
+
+  const showRow=(rowId,valId,tier,d)=>{
+    document.getElementById(rowId).style.display=tier>0?'flex':'none';
+    if(tier>0) document.getElementById(valId).textContent=`${fmt(tier)} → ${fmt(d)} 공제`;
+  };
+  showRow('row-t1','d-t1',ded.T1,ded.d1);
+  showRow('row-t2','d-t2',ded.T2,ded.d2);
+  showRow('row-t3','d-t3',ded.T3,ded.d3);
+
+  document.getElementById('d-ded').textContent=fmt(ded.total);
+  document.getElementById('d-bracket').textContent=`${(rate*100).toFixed(0)}% (과세표준 약 ${fmt(taxable)})`;
+  document.getElementById('d-itax').textContent=`약 ${fmt(Math.round(itax*10)/10)}`;
+  document.getElementById('d-ltax').textContent=`약 ${fmt(Math.round(ltax*10)/10)}`;
+  document.getElementById('d-total').textContent=`약 ${fmtHero(Math.round(total*10)/10)}`;
+
+  const area=document.getElementById('result-area');
+  area.style.display='block';
+  area.querySelectorAll('.fade-up').forEach((el,i)=>{
+    el.style.animation='none';
+    el.style.animationDelay=(i*.08)+'s';
+    requestAnimationFrame(()=>el.style.animation='');
+  });
+  setTimeout(()=>area.scrollIntoView({behavior:'smooth',block:'start'}),80);
+}
+</script>
+</body>
+</html>
